@@ -115,7 +115,7 @@ tf.Tensor(
 [Example Script](linear_regression.py)
 
 
-Linear Regression is one of the most basic forms of machine learning and is used to predict numeric values.
+Linear Regression is one of the most basic machine learning algorithms and is used to predict numeric values.
 
 Linear Regression Function: `y = mx + b`
 
@@ -162,7 +162,10 @@ print(f)
 
 #### Data
 
-ML algorithms require data
+ML algorithms require data to train and evaluate models. Data can come in many different forms. 
+
+Machine learning algorithms require seperate training and evaluation data to ensure the algorithm hasn't just memorized the training data.
+
 
 ## Classification
 
