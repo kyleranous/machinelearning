@@ -122,11 +122,13 @@ Linear Regression Function: `y = mx + b`
 Linear Regression calculates the line of best fit for a dataset. 
 
 Given the following plot:
+
 ![Linear Regression Sample Plot](/images/linear_regression/linear_regression_example_plot.png)
 
 with points at (1,1), (2,4), (2.5,7), (3,9), and (4,15)
 
 The calculated line of best fit would be:
+
 ![Line of Best Fit](/images/linear_regression/linear_regression_LOBF.png)
 
 The line of best fit has the equation: `y = 4.7x - 4.55`
