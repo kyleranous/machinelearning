@@ -166,6 +166,57 @@ ML algorithms require data to train and evaluate models. Data can come in many d
 
 Machine learning algorithms require seperate training and evaluation data to ensure the algorithm hasn't just memorized the training data.
 
+![Titanic Passengers by age](/images/linear_regression/titanic_passengers_by_age.png)
+
+<details>
+    <summary>Graph Code</summary>
+
+```python
+dftrain.age.plot.hist(bins=20)
+plt.title('Passengers by age')
+plt.xlabel('Age')
+plt.show()
+```
+</details>
+
+
+![Titanic Passengers by sex](/images/linear_regression/titanic_passengers_by_sex.png)
+
+
+<details>
+    <summary>Graph Code</summary>
+
+```python
+dftrain.sex.value_counts().plot(kind='barh')
+plt.title('Passengers by Sex')
+plt.show()
+```
+</details>
+
+
+![Titanic Passengers by class](/images/linear_regression/titanic_passenger_by_class.png)
+
+<details>
+    <summary>Graph Code</summary>
+
+```python
+dftrain['class'].value_counts().plot(kind='barh')
+plt.title('Passengers by Class')
+plt.show()
+```
+</details>
+
+
+![Titanic Survivors By Sex](/images/linear_regression/titanic_survivors_by_sex.png)
+
+<details>
+    <summary>Graph Code</summary>
+```python
+pd.concat([dftrain, y_train], axis=1).groupby('sex').survived.mean().plot(kind='barh').set_xlabel('% survived')
+plt.title('Titanic Survivors by Sex')
+plt.show()
+```
+</details>
 
 ## Classification
 
