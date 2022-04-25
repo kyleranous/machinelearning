@@ -516,7 +516,101 @@ print(model.numpy())
 Hidden Markov Models don't need to be trained as they are operating purly off probabilities. As long as the probabilities havn't changed, the calculations will always be the same.
 
 ## Neural Networks
+A neural network provides classifications or predictions. It takes input and maps it to some output. 
 
+**Densely Connected Neural Netowrk** is a neuroal network where all neorones in the current layer are connected to every neuron in the previous layer.<br>
+**Bias** exists in the previous layer to the one it connects. It is a trainable parameter<br>
+
+**Activation Function** 
+ - ReLU (Rectified Linear Unit): Makes any value that is less then 0 and sets it equal to zero, then is linear progression > 0
+
+ - TANH (Hyperbolic Tangent): Squishes the values to be between -1 and 1
+
+ - Sigmoid : Squishes the values to be between 0 and 1
+
+The activation function is applied at each layer before the total values are sent to the next layer. 
+
+**Loss/Cost Function**
+Calculates how far away our value is from the expected value
+Common Loss/cost functions
+ - Mean Squared Error
+ - Mean Absolute Error
+ - Hinge Loss
+
+**Gradiant Descent**
+Calculates the Gradiant from the loss to find a direction the model needs to move to minimize loss. It uses the calculation to update the Weights and Bias of the Neural Network
+
+**Back Propagation**
+Step Backwards through the network to  update the weights and Bias to fit the model to the Gradiant Descent.
+
+**Optimizer**
+The Optimizer or Optimizer function is the function that implements the back propagation.
+
+Common Optimizer Algorithms:
+- Gradient Descent
+- Stochastic Gradient Descent
+- Mini-Batch Gradient Descent
+- Momentum
+- Nesterov Accelerated Gradient
+
+https://medium.com/@sdoshi579/optimizers-for-training-neural-network-59450d71caf6
+
+
+### Creating a Neural Network
+
+```python
+import tensorflow as tf
+from tensorflow import keras
+
+import numpy as np
+import matplotlib.pyplot as plt
+```
+
+This tutorial uses the MNIST Fashion Dataset. This dataset is included in keras.
+
+#### Data Preprocessing
+The last step before creating our model is to preprocess our data. This means applying some prior transformations to our data before feeding it the model. For this example we will scale all the greyscale pixel values (0-255) to be between 0 and 1. We can do this by dividing each value in the training and testing sets by 255.0.
+
+```python
+train_images = train_images / 255.0
+
+test_images = test_images / 255.0
+
+```
+
+#### Building the Model
+
+```python
+model = keras.Sequential([
+    keras.layers.Flatten(input_shape=(28, 28)),  # input layer (1)
+    keras.layers.Dense(128, activation='relu'),  # hidden layer (2)
+    keras.layers.Dense(10, activation='softmax') # output layer (3)
+])
+```
+There should be as many output neurons as there are output layers. `softmax` will make sure all the values of the neurons add up to one and are between zero and one 
+
+#### Compile the Model
+Defining the model builds the *Architecture* of the model. The optimizer, loss, and metrics need to be selected also.
+
+```python
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+```
+
+#### Training the Model
+
+```python
+model.fit(train_images, train_labels, epochs=10)
+```
+
+#### Evaluating the Model
+
+```python
+test_loss, test_acc = model.evaluate(test_images, test_labels, verbose=1)
+```
+
+#### Predictions
 ## Keras
 
 ## References
