@@ -220,12 +220,31 @@ plt.show()
 
 <details>
     <summary>Graph Code</summary>
+
 ```python
 pd.concat([dftrain, y_train], axis=1).groupby('sex').survived.mean().plot(kind='barh').set_xlabel('% survived')
 plt.title('Titanic Survivors by Sex')
 plt.show()
 ```
 </details>
+
+**Catagorical vs Feature Data**
+Catagorical data is data that is not numeric. It will need to be converted to numeric data before it can be used
+
+Processing Catagorical and Feature Columns:
+```python
+CATEGORICAL_COLUMNS = ['sex', 'n_siblings_spouses', 'parch', 'class', 'deck', 'embark_town', 'alone']
+
+NUMERIC_COLUMNS = ['age', 'fare']
+
+feature_columns = []
+for feature_name in CATEGORICAL_COLUMNS:
+    vocabulary = dftrain[feature_name].unique() # Pulls a list of each unique value in a column
+    feature_columns.append(tf.feature_column.categorical_column_with_vocabulary_list(feature_name, vocabulary))
+
+for feature_name in NUMERIC_COLUMNS:
+    feature_columns.append(tf.feature_column.numeric_column(feature_name, dtype=tf.float32))
+```
 
 ## Classification
 
