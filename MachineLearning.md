@@ -306,11 +306,144 @@ result = list(linear_est.predict(eval_input_fn)) # Convert to list to parse the 
 
 the prediction can be accessed through the `probabilities` dictionary object. `probabilities` returns an array with the calculated propabilities of the results. In the case of linear_regression.py the array is [died, survived] so returning `result[0]['probabilities'][1]` would return the probability that the passenger at index 0 survived. 
 ## Classification
+Classification is used to seperate datapoints into classes of different labels. 
 
+Example uses the Iris Flower Dataset from TensorFlow
+ - Training Data: https://storage.googleapis.com/download.tensorflow.org/data/iris_training.csv
+ - Evaluation Data: https://storage.googleapis.com/download.tensorflow.org/data/iris_test.csv
+
+### Data
+
+The data in this example seperates flowers into 3 different classes of species:
+ - Setosa
+ - Versicolor
+ - Virginica
+
+The data provided for each flower is:
+ - Sepal Length
+ - Sepal Width
+ - Petal Length
+ - Petal Width
+
+Defining Column Names:
+```python
+CSV_COLUMN_NAMES = ['SepalLength', 'SepalWidth', 'PetalLength', 'PetalWidth', 'Species']
+SPECIES = ['Serosa', 'Versicolor', 'Virginica']
+```
+
+Output of test.head()
+```bash
+   SepalLength  SepalWidth  PetalLength  PetalWidth  Species
+0          6.4         2.8          5.6         2.2        2
+1          5.0         2.3          3.3         1.0        1
+2          4.9         2.5          4.5         1.7        2
+3          4.9         3.1          1.5         0.1        0
+4          5.7         3.8          1.7         0.3        0
+```
+
+Remove the results (Species) column from the training and evaluation data
+
+```python
+train_y = train.pop('Species')
+test_y = test.pop('Species')
+```
+
+### Input Function
+
+```python
+def input_fn(features, labels, training=True, batch_size=256):
+    # Convert the inputs into a Dataset
+    dataset = td.data.Dataset.from_tensor_slices((dict(features), labels))
+
+    # Shuffle and repeat if in training mode
+    if training:
+        dataset = dataset.shuffle(1000).repeat()
+
+    return dataset.batch(batch_size)
+```
+This input function is simplier then the input function used in the linear regression model. This function is only returning a dataset that has been sliced into batches. As such, when we evaluate, we will have to evaluate a lambda function that gets this method passed to it and sets epochs.
+
+### Feature Columns
+Since the data has already been encoded (No Catigorical data) we don't need to worry about a vocab map.
+
+```python
+# Feature columns describe how to use the input
+my_feature_columns = []
+for key in train.keys():
+    my_feature_columns.append(tf.feature_column.numeric_column(key=key))
+
+```
+This function loops through the column headers in the train dataset (`train.keys()`) and appends them to a list of feature columns that we will pass to the estimator.
+
+### Building the Model
+
+TensorFlow reccomends using a DNNClassifier (Deep Neural Network) model for classification
+
+```python
+# Build a DNN with 2 hidden layers with 30 and 10 hidden nodes each.
+classifier = tf.estimator.DNNClassifier(feature_columns=my_feature_columns,
+    # Two hidden laters of 30 and 10 nodes respectively.
+    hidden_units=[30, 10],
+    # The model must choose between 3 classes.
+    n_classes = 3)
+```
+*tf.estimator is depreciated in TF 2.0. It is reccomended to use kera's instead*
+
+*What are hidden layers?*<br>
+*What are hidden nodes?*
+
+### Training the Model
+
+```python
+classifier.train(
+    input_fn=lambda: input_fn(train, train_y, training=True),
+    steps=5000)
+```
+
+We pass a lambda function to classifier.train, with the input_fn() that was defined above. We are passing a lambda function because input_fn() returns the processed dataset, but not the function to do it.
+
+`steps=5000` is an alternative to calling out epochs. If we train a dataset with 2000 entries, with a batch size of 10, then an epoch consists of 2000 entries / (10 entries / step) = 200 steps. so calling out steps=5000 runs 5000 batches of data, and may not be a hole number of epochs.
+
+### Evaluate the Model
+
+```python
+eval_result = classifier.evaluate(input_fn=lambda: input_fn(test, test_y, training=False))
+print(f'\nTest set accuracy: {format(eval_result["accuracy"], "0.3f")}\n')
+```
+
+### Predictions based on user input
+
+```python
+# Create a new Input Function to process User provided Data
+def user_input_fn(features, batch_size=256):
+    # Convert user inputs into a Dataset without labels
+    return tf.data.Dataset.from_tensor_slices(dict(features)).batch(batch_size)
+
+
+features = ['SepalLength', 'SepalWidth', 'PetalLength', 'PetalWidth']
+predict = {}
+print("Please type numeric values as prompted.")
+for feature in features:
+    valid = True
+    while valid:
+        val = input(f'{feature}: ')
+        if not val.isdigit(): valid = False
+
+    predict[feature] = [float(val)]
+
+predictions = classifier.predict(input_fn=lambda: user_input_fn(predict))
+for pred_dict in predictions:
+    class_id = pred_dict['class_ids'][0]
+    probability = pred_dict['probabilities'][class_id]
+
+    print(f'Prediction is "{SPECIES[class_id]}" ({format(100 * probability, ".3f")})')
+```
 
 ## Clustering
 
 ## Hidden Markov Models
+
+## Keras
 
 ## References
 
