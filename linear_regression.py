@@ -42,3 +42,28 @@ for feature_name in CATEGORICAL_COLUMNS:
 
 for feature_name in NUMERIC_COLUMNS:
     feature_columns.append(tf.feature_column.numeric_column(feature_name, dtype=tf.float32))
+
+
+# Create Input function for processing data to be fed to model
+def make_input_fn(data_df, label_df, num_epochs=10, shuffle=True, batch_size=32):
+    def input_function(): # Function returned by input function
+        ds = tf.data.Dataset.from_tensor_slices((dict(data_df), label_df)) # Create tf.data.Dataset object from the pandas data and labels
+        if shuffle:
+            ds = ds.shuffle(1000) # Randomize the order of the data
+        ds = ds.batch(batch_size).repeat(num_epochs) # Split the dataset into batches of size batch_size and repeat process for the number of epochs
+        return ds
+    return input_function
+
+# Setup the Training and Evaluation input functions
+train_input_fn = make_input_fn(dftrain, y_train)
+eval_input_fn = make_input_fn(dfeval, y_eval, num_epochs=1, shuffle=False)
+
+# Create the ML Model
+linear_est = tf.estimator.LinearClassifier(feature_columns=feature_columns)
+
+# Train the model with training data
+linear_est.train(train_input_fn) # Train the model with training data passed from the training input function
+
+result = linear_est.evaluate(eval_input_fn) # Evaluate the model with the eval dataset passed from the training input function, result will hold the model metrics/stats
+
+print(result['accuracy'])
