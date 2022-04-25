@@ -22,6 +22,7 @@ Packages Used:
  - pandas `pip install pandas`
  - matplotlib `pip install matplotlib`
  - numpy `pip install numpy`
+ - TensorFlow-Probability `pip install tensorflow-probability`
 
 
 ## TensorFlow
@@ -305,14 +306,14 @@ result = list(linear_est.predict(eval_input_fn)) # Convert to list to parse the 
 ```
 
 the prediction can be accessed through the `probabilities` dictionary object. `probabilities` returns an array with the calculated propabilities of the results. In the case of linear_regression.py the array is [died, survived] so returning `result[0]['probabilities'][1]` would return the probability that the passenger at index 0 survived. 
-## Classification
+### Classification
 Classification is used to seperate datapoints into classes of different labels. 
 
 Example uses the Iris Flower Dataset from TensorFlow
  - Training Data: https://storage.googleapis.com/download.tensorflow.org/data/iris_training.csv
  - Evaluation Data: https://storage.googleapis.com/download.tensorflow.org/data/iris_test.csv
 
-### Data
+#### Data
 
 The data in this example seperates flowers into 3 different classes of species:
  - Setosa
@@ -348,7 +349,7 @@ train_y = train.pop('Species')
 test_y = test.pop('Species')
 ```
 
-### Input Function
+#### Input Function
 
 ```python
 def input_fn(features, labels, training=True, batch_size=256):
@@ -363,7 +364,7 @@ def input_fn(features, labels, training=True, batch_size=256):
 ```
 This input function is simplier then the input function used in the linear regression model. This function is only returning a dataset that has been sliced into batches. As such, when we evaluate, we will have to evaluate a lambda function that gets this method passed to it and sets epochs.
 
-### Feature Columns
+#### Feature Columns
 Since the data has already been encoded (No Catigorical data) we don't need to worry about a vocab map.
 
 ```python
@@ -375,7 +376,7 @@ for key in train.keys():
 ```
 This function loops through the column headers in the train dataset (`train.keys()`) and appends them to a list of feature columns that we will pass to the estimator.
 
-### Building the Model
+#### Building the Model
 
 TensorFlow reccomends using a DNNClassifier (Deep Neural Network) model for classification
 
@@ -392,7 +393,7 @@ classifier = tf.estimator.DNNClassifier(feature_columns=my_feature_columns,
 *What are hidden layers?*<br>
 *What are hidden nodes?*
 
-### Training the Model
+#### Training the Model
 
 ```python
 classifier.train(
@@ -404,14 +405,14 @@ We pass a lambda function to classifier.train, with the input_fn() that was defi
 
 `steps=5000` is an alternative to calling out epochs. If we train a dataset with 2000 entries, with a batch size of 10, then an epoch consists of 2000 entries / (10 entries / step) = 200 steps. so calling out steps=5000 runs 5000 batches of data, and may not be a hole number of epochs.
 
-### Evaluate the Model
+#### Evaluate the Model
 
 ```python
 eval_result = classifier.evaluate(input_fn=lambda: input_fn(test, test_y, training=False))
 print(f'\nTest set accuracy: {format(eval_result["accuracy"], "0.3f")}\n')
 ```
 
-### Predictions based on user input
+#### Predictions based on user input
 
 ```python
 # Create a new Input Function to process User provided Data
@@ -439,9 +440,82 @@ for pred_dict in predictions:
     print(f'Prediction is "{SPECIES[class_id]}" ({format(100 * probability, ".3f")})')
 ```
 
-## Clustering
+### Clustering
+Clustering is a technique that involves the grouping of data points. It is used when you have lots of datapoints for features, but no information on labels. It works by grouping datapoints that have similar properties/features. New data is plotted checked against the model and grouped with the other data.
 
-## Hidden Markov Models
+https://towardsdatascience.com/the-5-clustering-algorithms-data-scientists-need-to-know-a36d136ef68
+
+K-Means clustering is the most well known clustering algorithm
+
+**K-Means Clustering**
+1. Select the number of classes/groups to use and randomly place their centroids
+2. Assign all datapoints to the centroids by distance, the closest centroid to a datapoint is the class of that datapoint
+3. Average the datapoints assigned to each centroid to recalculate the centroid position
+4. Reassigne each datapoint a centroid based on the new central location
+5. Repeat Steps 3-4 until no points change which centroid they belong to
+
+### Hidden Markov Models
+
+Hidden Markov Model is a finite set of statesm each of which is associated with a (generally multidimensional) probability distribution. Transistions among the states are governed by a set of prabilities called transition probabilities
+
+A hidden markov movel works with probabilities to predict future events or states.
+
+#### Data
+
+**States**: In each markov model we have a finite set of states, these states are "hidden" within the model which means we do not directly observe them.
+
+**Observations**: Each state has a particular outcome or observation associated with it based on a probability distribution. ex: 
+> On a hot day Time has an 80% chance of being happy and a 20% chance of being sad
+
+**Transitions**: Each state will have a probability defining the likelyhood of transitioning to a different state.
+> A cold day has a 30% chance of being followed by a hot day and a 70% chance of being followed by another cold day.
+
+To create a Hidden Markov Model we need:
+ - States
+ - Observation Distribution
+ - Transition Distribution
+
+ #### Weather Model
+
+ From TensorFlow documentation
+ https://www.tensorflow.org/probability/api_docs/python/tfp/distributions/HiddenMarkovModel
+
+ Model a simple weather system and try to predict the temperature on each day given the following information:
+
+ 1. Cold days are encoded by a 0 and hot days are encoded by a 1
+ 1. The first day in our sequence has an 80% chance of being cold
+ 1. A cold day has a 30% chance of being followed by a hot day
+ 1. A hot day has a 20% chance of being followed by a cold day
+ 1. On each day yhe temperature is normally distributed with mean and standard deviation 0 and 5 on a cold day and mean and standard deviation 15 and 10 on a hot day
+
+On a hot day the average temperature is 15 and ranges from 5 to 25
+
+Creating the distribution variables:
+```python
+tfd = tfp.distributions # Shortcut for use lateron
+initial_distribution = tfd.Categorical(probs=[0.8, 0.2])
+transition_distribution = tfd.Categorical(probs=[[0.7, 0.3],
+                                                [0.2, 0.8]])
+observation_distribution = tfd.Normal(loc=[0., 15.], scale=[5., 10.])
+# the loc argument represents the mean and the scale is the standard deviation
+```
+
+Creating the model:
+```python
+model = tfd.HiddenMarkovModel(
+    initial_distribution=initial_distribution,
+    transition_distribution=transition_distribution,
+    observation_distribution=observation_distribution,
+    num_steps=7)
+```
+
+Viewing the Model Results:
+```python
+print(model.numpy())
+```
+Hidden Markov Models don't need to be trained as they are operating purly off probabilities. As long as the probabilities havn't changed, the calculations will always be the same.
+
+## Neural Networks
 
 ## Keras
 
