@@ -166,6 +166,15 @@ ML algorithms require data to train and evaluate models. Data can come in many d
 
 Machine learning algorithms require seperate training and evaluation data to ensure the algorithm hasn't just memorized the training data.
 
+The dataset used for [linear_regression.py](/linear_regression.py) is a sample dataset of titanic survivors from TensorFlow. 
+<br>
+
+Training Data: https://storage.googleapis.com/tf-datasets/titanic/train.csv
+<br>
+Evaluation Data: https://storage.googleapis.com/tf-datasets/titanic/eval.csv
+
+**Training Data Graphs**
+
 ![Titanic Passengers by age](/images/linear_regression/titanic_passengers_by_age.png)
 
 <details>
@@ -227,3 +236,4 @@ plt.show()
 ## References
 
 - [freeCodeCamp](https://www.freecodecamp.org/learn/machine-learning-with-python/)
+- [TensorFlow Tutorials](https://www.tensorflow.org/tutorials)
