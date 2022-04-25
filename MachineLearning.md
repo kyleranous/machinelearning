@@ -246,7 +246,67 @@ for feature_name in NUMERIC_COLUMNS:
     feature_columns.append(tf.feature_column.numeric_column(feature_name, dtype=tf.float32))
 ```
 
+#### Training Process
+
+In linear_regression.py training data is streamed in *batchs* of 32 datasets for a number of *epochs*. An *epoch* is the number of times the model will see the complete dataset. 
+
+Loading data in batches is usefull for very large datasets that can't all be loaded into memory. 
+
+**Over Fitting**<br>
+It is possible to feed the data to many times to a model. The model then *memorizes* the dataset and is really good at predicting the training data, but fails with the evaluation data. Preventing this is done by starting with a low number of epochs and slowly increasing to tune the best results.
+
+![accuracy vs epoch data](./images/linear_regression/accuracy_vs_epochs.png)
+
+
+Converting data into batchs and feeding it to the training model is done through an *input function*
+
+This TensorFlow model requires data be passed as a td.data.Dataset object. The input function converts the pandas dataframe object into a td.data.Dataset object. 
+
+```python
+def make_input_fn(data_df, label_df, num_epochs=10, shuffle=True, batch_size=32):
+    def input_function(): # Function returned by input function
+        ds = tf.data.Dataset.from_tensor_slices((dict(data_df), label_df)) # Create tf.data.Dataset object from the pandas data and labels
+        if shuffle:
+            ds = ds.shuffle(1000) # Randomize the order of the data
+        ds = ds.batch(batch_size).repeat(num_epochs) # Split the dataset into batches of size batch_size and repeat process for the number of epochs
+        return ds
+    return input_function
+```
+
+make_input_fn passes an inner function that can then be called by the model to process the initial data. (Think Lambda Functions)
+
+#### Creating the Model
+
+TensorFlow uses *estimators* to create the ML models.
+
+```python
+linear_est = tf.estimator.LinearClassifier(feature_columns=feature_columns)
+```
+The above code creates an estimator that will use a LinearClassifier from the feature_columns that are passed to it.
+
+#### Training and Evaluating the Model
+
+Passing the estimator model the training data in *train* mode will train the data
+```python
+linear_est.train(train_input_fn)
+```
+
+Passing the estimator model the eval data in *evaluate* mode will evaluate the data and return metrics / stats for the model
+```python
+result = linear_est.evaluate(eval_input_fn)
+```
+Evaluating a model returns a dictionary.
+
+##### Predicting results
+models have a predict method that will return..... a prediction. in the case of linear_regression.py the model will predect weather the passenger survived or died.
+
+```python
+result = list(linear_est.predict(eval_input_fn)) # Convert to list to parse the results
+```
+
+the prediction can be accessed through the `probabilities` dictionary object. `probabilities` returns an array with the calculated propabilities of the results. In the case of linear_regression.py the array is [died, survived] so returning `result[0]['probabilities'][1]` would return the probability that the passenger at index 0 survived. 
 ## Classification
+
 
 ## Clustering
 
